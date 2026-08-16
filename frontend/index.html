@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Pen Company: Strategic ABC Simulation Engine</title>
+    <style>
+        :root {
+            --bg-main: #f8fafc; --surface: #ffffff; --text-main: #0f172a; --text-muted: #64748b;
+            --primary: #1e3a8a; --secondary: #0d9488; --accent: #b45309; --error: #e11d48;
+            --success: #16a34a; --border: #cbd5e1; --warning: #f59e0b;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background-color: var(--bg-main); color: var(--text-main); line-height: 1.6; margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; background: var(--surface); padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); position: relative; }
+        header { border-bottom: 2px solid var(--border); padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        h1, h2, h3 { color: var(--primary); margin-top: 0; }
+        h1 { font-size: 28px; margin-bottom: 5px; }
+        h2 { border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        h3 { color: var(--secondary); margin-top: 15px; }
+        .screen { display: none; } .screen.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 20px; }
+        .card { background: #f1f5f9; padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px;}
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background-color: var(--primary); color: white; font-weight: 600; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; color: var(--primary); }
+        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        textarea { height: 100px; resize: vertical; }
+        .slider-container { display: flex; align-items: center; gap: 15px; }
+        input[type="range"] { flex: 1; }
+        .btn { background-color: var(--primary); color: white; border: none; padding: 10px 20px; font-size: 15px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: 0.2s; margin-right: 10px; margin-top: 10px; }
+        .btn:hover { opacity: 0.9; } .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-success { background-color: var(--success); } .btn-warning { background-color: var(--warning); color: #000; } .btn-hint { background-color: var(--accent); color: white; }
+        .hud-bar { background: #e2e8f0; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px; display: flex; justify-content: space-between; font-weight: 600; font-size: 14px; flex-wrap: wrap; gap: 8px; }
+        .alert { padding: 15px; border-radius: 6px; margin-top: 15px; display: none; font-weight: 500; }
+        .alert-error { background-color: #ffe4e6; color: var(--error); border: 1px solid #fecdd3; }
+        .alert-success { background-color: #dcfce7; color: var(--success); border: 1px solid #bbf7d0; }
+        .alert-warning { background-color: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+        details.reference-drawer { background: #f8fafc; border: 2px solid var(--secondary); border-radius: 8px; margin-bottom: 20px; padding: 10px 20px; position: sticky; top: 10px; z-index: 100; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        details.reference-drawer summary { font-weight: bold; color: var(--secondary); cursor: pointer; padding: 5px 0; outline: none; }
+        .reference-content { max-height: 400px; overflow-y: auto; margin-top: 15px; font-size: 13px; }
+        .input-table input { width: 80px; padding: 6px; border: 1px solid var(--border); border-radius: 4px; }
+        .input-table select { width: 170px; padding: 6px; border: 1px solid var(--border); border-radius: 4px; }
+        .consent-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+        .consent-box label { display: flex; align-items: flex-start; gap: 10px; font-weight: 500; color: var(--text-main); cursor: pointer; }
+        .consent-box input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; }
+        .field-error-list { margin: 8px 0 0 0; padding-left: 20px; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>Active Pen Company</h1>
+            <div style="color: var(--text-muted); font-weight: 500;">Strategic ABC Management Simulation Engine</div>
+        </div>
+        <div id="student-tag" style="text-align: right; font-weight: 600; color: var(--primary);"></div>
+    </header>
+
+    <div id="hud" class="hud-bar" style="display: none;">
+        <div>Session: <span id="hud-ds" style="color: var(--accent);"></span></div>
+        <div>Hints Used: <span id="hud-hints" style="color: var(--accent);">0</span></div>
+        <div>Point Deductions: <span id="hud-penalties" style="color: var(--error);">0 pts</span></div>
+        <div>Current Potential Grade: <span id="hud-score" style="color: var(--success);">100%</span></div>
+    </div>
+
+    <details id="global-drawer" class="reference-drawer" style="display:none;">
+        <summary>▶ Click to Expand / Collapse Core Operational Ledger Data</summary>
+        <div class="reference-content" id="drawer-content"></div>
+    </details>
+
+    <!-- SCREEN 0: Consent + Login -->
+    <div id="screen-0" class="screen active">
+        <h2>Before You Begin: Consent &amp; Data Use</h2>
+        <div class="card">
+            <p><strong>What this tool does:</strong> This is a graded classroom simulation covering Activity-Based
+            Costing. Your inputs, your final score, and some process data (number of hints used, time taken,
+            confidence ratings) are recorded so your instructor can grade your attempt.</p>
+            <p><strong>Research use:</strong> Your instructor may also use anonymized data from this simulation
+            in academic research or publication (e.g. studying how students learn cost accounting concepts).
+            If you consent, your responses will be linked to a one-way pseudonymous research ID rather than
+            your name, for analysis purposes. Declining research use will not affect your grade.</p>
+        </div>
+        <div class="consent-box">
+            <label>
+                <input type="checkbox" id="consent-assignment">
+                <span>I understand this is a graded assignment and that my name, roll number, score, and answers
+                will be recorded for grading. <strong>(Required to proceed.)</strong></span>
+            </label>
+        </div>
+        <div class="consent-box">
+            <label>
+                <input type="checkbox" id="consent-research">
+                <span>I additionally consent to my anonymized responses (not my name) being used for academic
+                research or publication. <strong>(Optional — you can still complete the assignment if unchecked.)</strong></span>
+            </label>
+        </div>
+
+        <h2 style="margin-top:30px;">Student Login</h2>
+        <div class="grid-2" style="margin-top:20px;">
+            <div class="form-group">
+                <label for="student-name">Full Student Name</label>
+                <input type="text" id="student-name" placeholder="Enter your name">
+            </div>
+            <div class="form-group">
+                <label for="student-roll">Official Roll Number / Institutional ID</label>
+                <input type="text" id="student-roll" placeholder="Enter your official roll identifier">
+            </div>
+        </div>
+        <button class="btn btn-success" id="init-btn" onclick="initializeSimulation()">Initialize Attempt</button>
+        <div id="alert-0" class="alert"></div>
+    </div>
+
+    <div id="screen-1" class="screen">
+        <h2>Operational Briefing</h2>
+        <p>You have been brought in by <strong>Jyoti Deshmukh (Controller)</strong>. The company uses a traditional overhead burden rate based on direct labor cost. <strong>Deepak Sharma (Sales)</strong> wants to expand custom product lines, but <strong>Jayesh Dixit (Manufacturing)</strong> claims the factory is choking on short-run complexities.</p>
+
+        <h3>Your Active Production Data Ledger</h3>
+        <table id="source-table-1">
+            <thead><tr><th>Operating Parameter</th><th>Blue Pen</th><th>Black Pen</th><th>Red Pen</th><th>Purple Pen</th></tr></thead>
+            <tbody>
+                <tr><td>Production &amp; Sales Volume (Units)</td><td id="d-vol0"></td><td id="d-vol1"></td><td id="d-vol2"></td><td id="d-vol3"></td></tr>
+                <tr><td>Direct Material Unit Cost</td><td id="d-dm0"></td><td id="d-dm1"></td><td id="d-dm2"></td><td id="d-dm3"></td></tr>
+                <tr><td>Direct Labor Hours per Unit</td><td id="d-dl0"></td><td id="d-dl1"></td><td id="d-dl2"></td><td id="d-dl3"></td></tr>
+                <tr><td>Machine Hours per Unit</td><td id="d-mhu0"></td><td id="d-mhu1"></td><td id="d-mhu2"></td><td id="d-mhu3"></td></tr>
+                <tr><td>Scheduled Production Runs</td><td id="d-runs0"></td><td id="d-runs1"></td><td id="d-runs2"></td><td id="d-runs3"></td></tr>
+                <tr><td>Total Setup Time (Hours)</td><td id="d-su0"></td><td id="d-su1"></td><td id="d-su2"></td><td id="d-su3"></td></tr>
+                <tr><td>Parts &amp; Components Administered</td><td id="d-parts0"></td><td id="d-parts1"></td><td id="d-parts2"></td><td id="d-parts3"></td></tr>
+            </tbody>
+        </table>
+
+        <h3>Indirect Ledger Expenses Pool</h3>
+        <p>Direct Labor wage rate is set firmly at <strong>₹200 per hour</strong>. The pricing policy specifies a standard <strong>40% profit markup</strong> over total computed unit manufacturing costs.</p>
+        <div class="grid-2">
+            <div class="card">
+                <strong>Activity Line Items:</strong>
+                <ul style="margin:5px 0; font-size:14px; padding-left:20px;">
+                    <li>Scheduling &amp; Batching: <span id="d-pool0"></span></li>
+                    <li>Machine Setups: <span id="d-pool1"></span></li>
+                    <li>Parts Administration: <span id="d-pool2"></span></li>
+                    <li>Machine Operations: <span id="d-pool3"></span></li>
+                </ul>
+            </div>
+            <div class="card" style="background:#e0f2fe; border-color:#bae6fd;">
+                <strong>Total Manufacturing Overhead Pool:</strong><br>
+                <span id="d-total-oh" style="font-size:24px; font-weight:bold; color:var(--primary);"></span>
+            </div>
+        </div>
+        <button class="btn btn-success" onclick="nextScreen(2, true)">Proceed to Phase 1</button>
+    </div>
+
+    <div id="screen-2" class="screen">
+        <h2>Phase 1: Traditional Costing System Analysis</h2>
+        <p>Calculate the Plant-Wide Overhead Burden Allocation Rate (as a % of Direct Labor Cost) and calculate standard target selling prices.</p>
+        <div class="form-group" style="max-width: 400px;">
+            <label>Plant-Wide Overhead Allocation Rate (%):</label>
+            <input type="number" id="p1-rate" placeholder="e.g. 300" step="0.01" onchange="state.numberOfRecalculations++">
+        </div>
+        <table class="input-table">
+            <thead><tr><th>Product Model</th><th>Direct Materials (₹)</th><th>Direct Labor (₹)</th><th>Allocated Overhead (₹)</th><th>Calculated Unit Cost (₹)</th><th>Target Selling Price (₹)</th></tr></thead>
+            <tbody id="phase1-tbody"></tbody>
+        </table>
+        <button class="btn btn-success" onclick="validatePhase1()">Validate Calculations</button>
+        <button class="btn btn-hint" onclick="requestHint(1)">Request Hint (-3 Pts)</button>
+        <button class="btn btn-warning" onclick="autoBypass(1)">Emergency Override (-10 Pts)</button>
+        <div id="hint-box-1" class="card" style="display:none; margin-top:15px; background:#fef3c7; border-left:4px solid var(--accent);"></div>
+        <div id="alert-2" class="alert"></div>
+    </div>
+
+    <div id="screen-2_5" class="screen">
+        <h2>Traditional System Management Review (Pre-ABC Data)</h2>
+        <p>Based strictly on the traditional allocation models verified on the previous panel, complete this core corporate management review.</p>
+        <div class="card">
+            <div class="form-group">
+                <label>Q1. Based on traditional cost tracking reports, which product is most profitable?</label>
+                <select id="pre-q1">
+                    <option value="">-- Choose Option --</option>
+                    <option value="Equal">All variants look equally profitable (identical unit margins)</option>
+                    <option value="Blue">Blue Pen</option><option value="Black">Black Pen</option><option value="Red">Red Pen</option><option value="Purple">Purple Pen</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Q2. Rank all products from most profitable to least profitable according to current traditional reporting data:</label>
+                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px;">
+                    <div>Rank 1 (Highest):<select id="pre-r1"><option value="">--</option><option value="Blue">Blue</option><option value="Black">Black</option><option value="Red">Red</option><option value="Purple">Purple</option><option value="Equal">All Equal</option></select></div>
+                    <div>Rank 2:<select id="pre-r2"><option value="">--</option><option value="Blue">Blue</option><option value="Black">Black</option><option value="Red">Red</option><option value="Purple">Purple</option><option value="Equal">All Equal</option></select></div>
+                    <div>Rank 3:<select id="pre-r3"><option value="">--</option><option value="Blue">Blue</option><option value="Black">Black</option><option value="Red">Red</option><option value="Purple">Purple</option><option value="Equal">All Equal</option></select></div>
+                    <div>Rank 4 (Lowest):<select id="pre-r4"><option value="">--</option><option value="Blue">Blue</option><option value="Black">Black</option><option value="Red">Red</option><option value="Purple">Purple</option><option value="Equal">All Equal</option></select></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Q3. Based on these reporting loops, which product should receive additional capital investment?</label>
+                <select id="pre-q3">
+                    <option value="">-- Choose Option --</option>
+                    <option value="Blue">Blue Pen</option><option value="Black">Black Pen</option><option value="Red">Red Pen</option><option value="Purple">Purple Pen</option>
+                    <option value="All">Any/All Variant Lines (Returns appear uniform)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Q4. Should management continue introducing more specialty colors to drive growth?</label>
+                <select id="pre-q4"><option value="">-- Choose Option --</option><option value="YES">YES</option><option value="NO">NO</option></select>
+            </div>
+        </div>
+        <div class="card" style="background:#f0fdf4;">
+            <div class="form-group">
+                <label>How confident are you that your current answers are entirely correct?</label>
+                <div class="slider-container">
+                    <input type="range" id="conf-pre" min="0" max="100" value="50" oninput="document.getElementById('conf-pre-val').innerText = this.value + '%'">
+                    <span id="conf-pre-val" style="font-weight:bold; width:50px;">50%</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>How mentally demanding was this analysis task? (Paas Mental Effort Scale):</label>
+                <select id="cl-pre">
+                    <option value="">-- Select Effort Rank --</option>
+                    <option value="1">1 - Very, very low mental effort</option><option value="2">2 - Very low mental effort</option>
+                    <option value="3">3 - Low mental effort</option><option value="4">4 - Rather low mental effort</option>
+                    <option value="5">5 - Neither low nor high mental effort</option><option value="6">6 - Rather high mental effort</option>
+                    <option value="7">7 - High mental effort</option><option value="8">8 - Very high mental effort</option>
+                    <option value="9">9 - Very, very high mental effort</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-success" onclick="submitPreAssessment()">Lock Assessment &amp; Load Phase 2a</button>
+    </div>
+
+    <div id="screen-3" class="screen">
+        <h2>Phase 2a: Operational Cost Hierarchy Sorting Matrix</h2>
+        <p>Audit the ledger. Identify and drop non-manufacturing period costs and assign correct drivers to valid manufacturing pools.</p>
+        <table class="input-table">
+            <thead><tr><th>Identified Activity Operational Line Item</th><th>Cost Hierarchy Classification Level</th><th>Assigned Primary Operational Driver</th></tr></thead>
+            <tbody>
+                <tr><td>Scheduling, Batch Sourcing &amp; Material Handling</td>
+                    <td><select id="p2a-h0" onchange="state.numberOfRecalculations++"><option value="">--Select--</option><option value="Unit">Unit-Level</option><option value="Batch">Batch-Level</option><option value="Product">Product-Sustaining</option><option value="Facility">Facility-Sustaining</option><option value="Period">Period Cost</option></select></td>
+                    <td><select id="p2a-d0"><option value="">--Select--</option><option value="MH">Machine Hours</option><option value="Runs">Production Runs</option><option value="Setup">Setup Hours</option><option value="Parts">Parts Administered</option><option value="None">None (Drop)</option></select></td></tr>
+                <tr><td>Physical Color Changeovers, Machine Resets</td>
+                    <td><select id="p2a-h1" onchange="state.numberOfRecalculations++"><option value="">--Select--</option><option value="Unit">Unit-Level</option><option value="Batch">Batch-Level</option><option value="Product">Product-Sustaining</option><option value="Facility">Facility-Sustaining</option><option value="Period">Period Cost</option></select></td>
+                    <td><select id="p2a-d1"><option value="">--Select--</option><option value="MH">Machine Hours</option><option value="Runs">Production Runs</option><option value="Setup">Setup Hours</option><option value="Parts">Parts Administered</option><option value="None">None (Drop)</option></select></td></tr>
+                <tr><td>Parts Data Systems Administration</td>
+                    <td><select id="p2a-h2" onchange="state.numberOfRecalculations++"><option value="">--Select--</option><option value="Unit">Unit-Level</option><option value="Batch">Batch-Level</option><option value="Product">Product-Sustaining</option><option value="Facility">Facility-Sustaining</option><option value="Period">Period Cost</option></select></td>
+                    <td><select id="p2a-d2"><option value="">--Select--</option><option value="MH">Machine Hours</option><option value="Runs">Production Runs</option><option value="Setup">Setup Hours</option><option value="Parts">Parts Administered</option><option value="None">None (Drop)</option></select></td></tr>
+                <tr><td>Machine Depreciation &amp; Utility Draw</td>
+                    <td><select id="p2a-h3" onchange="state.numberOfRecalculations++"><option value="">--Select--</option><option value="Unit">Unit-Level</option><option value="Batch">Batch-Level</option><option value="Product">Product-Sustaining</option><option value="Facility">Facility-Sustaining</option><option value="Period">Period Cost</option></select></td>
+                    <td><select id="p2a-d3"><option value="">--Select--</option><option value="MH">Machine Hours</option><option value="Runs">Production Runs</option><option value="Setup">Setup Hours</option><option value="Parts">Parts Administered</option><option value="None">None (Drop)</option></select></td></tr>
+                <tr><td>National Brand Advertising (Sales Team Portfolio)</td>
+                    <td><select id="p2a-h4" onchange="state.numberOfRecalculations++"><option value="">--Select--</option><option value="Unit">Unit</option><option value="Batch">Batch</option><option value="Product">Product</option><option value="Facility">Facility</option><option value="Period">Period Cost</option></select></td>
+                    <td><select id="p2a-d4"><option value="">--Select--</option><option value="MH">Machine Hours</option><option value="Runs">Runs</option><option value="Setup">Setup</option><option value="Parts">Parts</option><option value="None">None (Drop)</option></select></td></tr>
+                <tr><td>Corporate Executive Private Jet Fleet Logistics</td>
+                    <td><select id="p2a-h5" onchange="state.numberOfRecalculations++"><option value="">--Select--</option><option value="Unit">Unit</option><option value="Batch">Batch</option><option value="Product">Product</option><option value="Facility">Facility</option><option value="Period">Period Cost</option></select></td>
+                    <td><select id="p2a-d5"><option value="">--Select--</option><option value="MH">Machine Hours</option><option value="Runs">Runs</option><option value="Setup">Setup</option><option value="Parts">Parts</option><option value="None">None (Drop)</option></select></td></tr>
+            </tbody>
+        </table>
+        <button class="btn btn-success" onclick="validatePhase2a()">Verify Structure Matrix</button>
+        <button class="btn btn-warning" onclick="autoBypass(2)">Emergency Override (-10 Pts)</button>
+        <div id="alert-3" class="alert"></div>
+    </div>
+
+    <div id="screen-4" class="screen">
+        <h2>Phase 2b: ABC Trace Mapping &amp; Cost Re-Allocation</h2>
+        <p>Determine pool rates and trace overhead directly to product lines to find True ABC Unit Cost.</p>
+        <div class="grid-2">
+            <div>
+                <strong>Calculated Base Pool Rates:</strong>
+                <ul style="margin:5px 0; font-size:14px; padding-left:20px; list-style-type:none;">
+                    <li style="margin-bottom:5px;">Scheduling Rate: ₹<input type="number" id="p2b-r0" style="width:100px;" onchange="state.numberOfRecalculations++"> per Run</li>
+                    <li style="margin-bottom:5px;">Setup Rate: ₹<input type="number" id="p2b-r1" style="width:100px;" onchange="state.numberOfRecalculations++"> per Setup Hr</li>
+                    <li style="margin-bottom:5px;">Parts Rate: ₹<input type="number" id="p2b-r2" style="width:100px;" onchange="state.numberOfRecalculations++"> per Part</li>
+                    <li style="margin-bottom:5px;">Machine Rate: ₹<input type="number" id="p2b-r3" style="width:100px;" onchange="state.numberOfRecalculations++"> per MH</li>
+                </ul>
+            </div>
+        </div>
+        <table class="input-table">
+            <thead><tr><th>Product Line</th><th>Scheduling Allocated (₹)</th><th>Setups Allocated (₹)</th><th>Parts Allocated (₹)</th><th>Machine Allocated (₹)</th><th>True ABC Unit Cost (₹)</th></tr></thead>
+            <tbody id="phase2b-tbody"></tbody>
+        </table>
+        <button class="btn btn-success" onclick="validatePhase2b()">Validate Allocations</button>
+        <button class="btn btn-hint" onclick="requestHint(2)">Request Cost Pool Rates (-3 Pts)</button>
+        <button class="btn btn-warning" onclick="autoBypass(3)">Emergency Override (-10 Pts)</button>
+        <div id="hint-box-2" class="card" style="display:none; margin-top:15px; background:#fef3c7; border-left:4px solid var(--accent);"></div>
+        <div id="alert-4" class="alert"></div>
+    </div>
+
+    <div id="screen-5" class="screen">
+        <h2>Phase 2c: Strategic Cost Distortion Dashboard</h2>
+        <p>Observe how the tight clustering of direct material/labor created a <strong>Profitability Illusion</strong>. Under traditional methods, all variants looked functionally identical. ABC reveals extreme cross-subsidization.</p>
+        <table>
+            <thead><tr><th rowspan="2">Product Model</th><th rowspan="2">Volume</th><th colspan="2">Unit Cost (₹)</th><th colspan="2">Target Price (₹)</th><th rowspan="2">Economic Status</th></tr>
+                <tr><th>Traditional</th><th>True ABC</th><th>Traditional</th><th>True ABC</th></tr></thead>
+            <tbody id="dashboard-tbody"></tbody>
+        </table>
+
+        <div class="card" style="background:#eef2ff; border-color:#c7d2fe;">
+            <h3 style="margin-top:0;">What-If Explorer (ungraded — use this to build intuition)</h3>
+            <p style="font-size:13px; color:var(--text-muted); margin-top:-8px;">
+                This uses the pool rates you already calculated. Pick a product and drag its volume up or down.
+                Scheduling runs, setup hours, and parts count are held fixed — they don't automatically shrink just
+                because volume does. Watch what happens to the <strong>unit</strong> cost.</p>
+            <div class="form-group" style="max-width:300px;">
+                <label>Product to explore:</label>
+                <select id="whatif-product" onchange="renderWhatIf()">
+                    <option value="0">Blue Pen</option><option value="1">Black Pen</option>
+                    <option value="2">Red Pen</option><option value="3" selected>Purple Pen</option>
+                </select>
+            </div>
+            <div class="slider-container">
+                <span style="font-size:13px; width:70px;">Volume:</span>
+                <input type="range" id="whatif-slider" min="30" max="200" value="100" oninput="renderWhatIf()">
+                <span id="whatif-slider-val" style="font-weight:bold; width:110px;">100% of actual</span>
+            </div>
+            <div id="whatif-output" style="margin-top:12px; font-size:14px;"></div>
+        </div>
+
+        <button class="btn btn-success" onclick="nextScreen('5_5', false)">Proceed to Strategic Audit Review</button>
+    </div>
+
+    <div id="screen-5_5" class="screen">
+        <h2>Post-ABC Intervention Strategic Audit Review</h2>
+        <p>Re-evaluate the corporate operating matrix using the freshly calculated activity-based tracing values data layout.</p>
+        <div class="card">
+            <div class="form-group">
+                <label>Q1. Based on Activity-Based Costing, which product is genuinely most profitable?</label>
+                <select id="post-q1">
+                    <option value="">-- Choose Option --</option>
+                    <option value="Equal">All variants look equally profitable</option>
+                    <option value="Blue">Blue Pen</option><option value="Black">Black Pen</option><option value="Red">Red Pen</option><option value="Purple">Purple Pen</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Q2. Rank all products from most profitable to least profitable based on true underlying cost structures:</label>
+                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px;">
+                    <div>Rank 1 (Highest):<select id="post-r1"><option value="">--</option><option value="Blue">Blue</option><option value="Black">Black</option><option value="Red">Red</option><option value="Purple">Purple</option></select></div>
+                    <div>Rank 2:<select id="post-r2"><option value="">--</option><option value="Blue">Blue</option><option value="Black">Black</option><option value="Red">Red</option><option value="Purple">Purple</option></select></div>
+                    <div>Rank 3:<select id="post-r3"><option value="">--</option><option value="Blue">Blue</option><option value="Black">Black</option><option value="Red">Red</option><option value="Purple">Purple</option></select></div>
+                    <div>Rank 4 (Lowest):<select id="post-r4"><option value="">--</option><option value="Blue">Blue</option><option value="Black">Black</option><option value="Red">Red</option><option value="Purple">Purple</option></select></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Q3. Which product should receive additional structural capital investment?</label>
+                <select id="post-q3">
+                    <option value="">-- Choose Option --</option>
+                    <option value="Blue">Blue Pen</option><option value="Black">Black Pen</option><option value="Red">Red Pen</option><option value="Purple">Purple Pen</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Q4. Should management introduce more specialty colors to build out the variant pipeline?</label>
+                <select id="post-q4"><option value="">-- Choose Option --</option><option value="YES">YES</option><option value="NO">NO</option></select>
+            </div>
+        </div>
+        <div class="card" style="background:#f0fdf4;">
+            <div class="form-group">
+                <label>How confident are you that your revised tracking assessment values are correct?</label>
+                <div class="slider-container">
+                    <input type="range" id="conf-post" min="0" max="100" value="50" oninput="document.getElementById('conf-post-val').innerText = this.value + '%'">
+                    <span id="conf-post-val" style="font-weight:bold; width:50px;">50%</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>How mentally demanding was this activity? (Paas Mental Effort Scale):</label>
+                <select id="cl-post">
+                    <option value="">-- Select Effort Rank --</option>
+                    <option value="1">1 - Very, very low mental effort</option><option value="2">2 - Very low mental effort</option>
+                    <option value="3">3 - Low mental effort</option><option value="4">4 - Rather low mental effort</option>
+                    <option value="5">5 - Neither low nor high mental effort</option><option value="6">6 - Rather high mental effort</option>
+                    <option value="7">7 - High mental effort</option><option value="8">8 - Very high mental effort</option>
+                    <option value="9">9 - Very, very high mental effort</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-success" onclick="submitPostAssessment()">Lock Audit Data &amp; Proceed</button>
+    </div>
+
+    <div id="screen-5a" class="screen">
+        <h2 style="color: var(--accent);">Phase 5: The Twist — Avoidable vs. Committed Cost</h2>
+        <div class="card" style="border-left: 6px solid var(--accent);">
+            <p><strong>Six months later:</strong> management discontinued the lowest-volume product line entirely,
+            expecting total overhead to fall by roughly its full allocated share. It didn't. Total overhead only
+            dropped by a fraction of that. Why?</p>
+            <p>Not all activity cost disappears just because a product line does. Scheduling capability, changeover
+            tooling, and machine capacity are largely <strong>committed</strong> investments that persist until
+            management actively resizes them. Only some cost pools are genuinely <strong>avoidable</strong> in the
+            short run when volume for one line vanishes.</p>
+        </div>
+        <div class="card">
+            <h3>1. Classify each activity pool</h3>
+            <p style="font-size:13px; color:var(--text-muted);">For each pool, decide: if the lowest-volume product
+            line's entire volume disappeared tomorrow, would this cost genuinely go away in the short run
+            ("Avoidable"), or does the underlying capacity/capability persist regardless ("Committed")?</p>
+            <table class="input-table">
+                <tr><td>Scheduling &amp; Batch Sourcing</td><td><select id="p5-class-scheduling"><option value="">--Select--</option><option value="Avoidable">Avoidable</option><option value="Committed">Committed</option></select></td></tr>
+                <tr><td>Machine Setups / Changeovers</td><td><select id="p5-class-setups"><option value="">--Select--</option><option value="Avoidable">Avoidable</option><option value="Committed">Committed</option></select></td></tr>
+                <tr><td>Parts Administration</td><td><select id="p5-class-parts"><option value="">--Select--</option><option value="Avoidable">Avoidable</option><option value="Committed">Committed</option></select></td></tr>
+                <tr><td>Machine Operations</td><td><select id="p5-class-machine"><option value="">--Select--</option><option value="Avoidable">Avoidable</option><option value="Committed">Committed</option></select></td></tr>
+            </table>
+        </div>
+        <div class="card">
+            <h3>2. Estimate the real short-run overhead reduction</h3>
+            <p style="font-size:13px; color:var(--text-muted);">If the lowest-volume line's ENTIRE allocated overhead
+            (₹) is X, what percentage of X would genuinely disappear in the short run, given your classification above?</p>
+            <div class="form-group" style="max-width:250px;">
+                <input type="number" id="p5-reduction" min="0" max="100" step="1" placeholder="e.g. 60">
+                <span style="font-size:13px;">% of its allocated overhead is truly avoidable</span>
+            </div>
+        </div>
+        <div class="card">
+            <h3>3. Capacity-constrained priority ranking</h3>
+            <p style="font-size:13px; color:var(--text-muted);">Suppose Machine Hours are now the binding constraint
+            on production (the factory can't run more machine-hours than it currently does). Rank the four products
+            by priority for that scarce machine time — highest contribution per machine hour first, counting only
+            genuinely avoidable/variable cost against each product (committed costs are sunk either way and shouldn't
+            drive a short-run mix decision).</p>
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px;">
+                <div>Priority 1 (Highest):<select id="p5-rank1"><option value="">--</option><option value="Blue">Blue</option><option value="Black">Black</option><option value="Red">Red</option><option value="Purple">Purple</option></select></div>
+                <div>Priority 2:<select id="p5-rank2"><option value="">--</option><option value="Blue">Blue</option><option value="Black">Black</option><option value="Red">Red</option><option value="Purple">Purple</option></select></div>
+                <div>Priority 3:<select id="p5-rank3"><option value="">--</option><option value="Blue">Blue</option><option value="Black">Black</option><option value="Red">Red</option><option value="Purple">Purple</option></select></div>
+                <div>Priority 4 (Lowest):<select id="p5-rank4"><option value="">--</option><option value="Blue">Blue</option><option value="Black">Black</option><option value="Red">Red</option><option value="Purple">Purple</option></select></div>
+            </div>
+        </div>
+        <button class="btn btn-success" onclick="submitPhase5()">Lock Phase 5 Analysis &amp; Continue</button>
+        <div id="alert-5a" class="alert"></div>
+    </div>
+
+    <div id="screen-5b" class="screen">
+        <h2 style="color: var(--accent);">Phase 5b: The Customer Lens</h2>
+        <p>Even <span id="p5b-winner-name">the most profitable product</span> — the clear winner in your ABC
+        analysis — can hide a loss-making customer. The SAME pool rates you already calculated apply at the
+        customer level too. Two customers order this product very differently:</p>
+        <table>
+            <thead><tr><th>Customer</th><th>Order Pattern</th><th>Volume (units)</th><th>Production Runs</th><th>Setup Hours</th><th>Parts Lines</th></tr></thead>
+            <tbody id="customer-lens-tbody"></tbody>
+        </table>
+        <div class="card">
+            <div class="form-group">
+                <label>Which customer is actually LESS profitable once activity costs are traced to them individually?</label>
+                <select id="p5b-customer">
+                    <option value="">-- Choose Option --</option>
+                    <option value="Alpha">Customer Alpha</option>
+                    <option value="Beta">Customer Beta</option>
+                </select>
+            </div>
+            <div class="form-group" style="max-width:300px;">
+                <label>Estimate the gap in margin-per-unit (₹) between the two customers:</label>
+                <input type="number" id="p5b-gap" min="0" step="0.01" placeholder="₹ per unit">
+            </div>
+        </div>
+        <button class="btn btn-success" onclick="submitCustomerLens()">Lock Customer Analysis &amp; Proceed to Dilemma</button>
+        <div id="alert-5b" class="alert"></div>
+    </div>
+
+    <div id="screen-6" class="screen">
+        <h2 style="color: var(--accent);">Phase 3: Executive Strategic Dilemma</h2>
+        <div id="dilemma-content" class="card" style="font-size:15px; border-left: 6px solid var(--accent);"></div>
+        <br>
+        <div class="form-group">
+            <label>Select your executive directive action:</label>
+            <select id="dilemma-choice">
+                <option value="">-- Choose Course of Action --</option>
+                <option value="A" id="optA-text"></option>
+                <option value="B" id="optB-text"></option>
+                <option value="C" id="optC-text"></option>
+            </select>
+        </div>
+        <button class="btn" style="background-color:var(--primary);color:#fff;" onclick="validateDilemma()">Lock Strategic Decision</button>
+        <div id="alert-6" class="alert"></div>
+    </div>
+
+    <div id="screen-7" class="screen">
+        <h2>Phase 4: Synthesis &amp; Managerial Reflection</h2>
+        <div class="card" style="border-left: 6px solid var(--error); background:#fff1f2;">
+            <h3 style="color:var(--error); margin-top:0;">Defend Your Decision</h3>
+            <p>A colleague on the board pushes back on your dilemma decision: <em>"ABC's setup-hour allocation
+            assumes setups are the true cost driver — but what if changeover cost is actually falling because
+            we're about to install a new quick-changeover machine? Aren't you making a permanent decision based on
+            today's inefficiency?"</em></p>
+            <div class="form-group">
+                <label>Write a short rebuttal (or explain how it would change your recommendation):</label>
+                <textarea id="ref-rebuttal" placeholder="Respond to the counter-argument..."></textarea>
+            </div>
+        </div>
+
+        <p>Complete your terminal performance matrix documentation details below. Submission to the grading script triggers automatically upon confirmation.</p>
+        <div class="card">
+            <div class="form-group"><label>1. What surprised you most when comparing the traditional allocation tracking model with ABC?</label><textarea id="ref-surprised" placeholder="Type your observation insights..."></textarea></div>
+            <div class="form-group"><label>2. What specific accounting misconception did you have initially before examining activity rates?</label><textarea id="ref-misconception" placeholder="Type your baseline review..."></textarea></div>
+            <div class="form-group"><label>3. Which specific cost driver operational pool influenced your portfolio decision most?</label><textarea id="ref-driver" placeholder="Detail the driving variance tracking data..."></textarea></div>
+            <div class="form-group"><label>4. What high-level rule did you learn about ABC costing configurations relative to variant pricing?</label><textarea id="ref-learned" placeholder="Type your technical summary review..."></textarea></div>
+        </div>
+        <button class="btn btn-success" style="width:100%; font-size:16px;" onclick="processFinalMetricsAndSubmit()">Compile Performance Matrix &amp; Submit Assignment</button>
+    </div>
+
+    <div id="screen-8" class="screen">
+        <h2>Assignment Evaluation Summary Card</h2>
+        <div class="grid-2">
+            <div class="card" style="text-align:center; border:2px solid var(--success); display: flex; flex-direction: column; justify-content: center;">
+                <div style="font-size:16px; font-weight:bold;">Final Attempt Score</div>
+                <div id="final-score-val" style="font-size:48px; color:var(--success); font-weight:bold;">0%</div>
+                <div style="font-size:12px; margin-top:10px; color:var(--text-muted);" id="transmission-status">Submitting to gradebook...</div>
+            </div>
+            <div class="card">
+                <strong>Internal Tracking Log:</strong>
+                <ul style="margin:10px 0; padding-left:20px; font-size:13px; line-height: 1.8;">
+                    <li>Base Operations Tracking: <span id="score-base">0</span> / 50</li>
+                    <li>Strategic Dilemma: <span id="score-dil">0</span> / 20</li>
+                    <li>Phase 5 (Committed vs. Avoidable): <span id="score-phase5">0</span> / 15</li>
+                    <li>Phase 5b (Customer Lens): <span id="score-customer">0</span> / 15</li>
+                    <li>Hints Activated Count: <span id="meta-hints">0</span> (-3 pts each)</li>
+                    <li>Manual Adjust Loops: <span id="meta-recalcs">0</span></li>
+                    <li>Total Compilation Errors: <span id="meta-errors">0</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="card" style="background:#e0f2fe; font-size:13px;">
+            <strong>Automated Cognitive Evaluation Outputs:</strong>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+                <div>Pre Decision Accuracy: <span id="c-pre-acc" style="font-weight:600;"></span></div>
+                <div>Post Decision Accuracy: <span id="c-post-acc" style="font-weight:600;"></span></div>
+                <div>Calculated Learning Gain: <span id="c-gain" style="font-weight:600;"></span></div>
+                <div>Calibration Error (Pre): <span id="c-pre-cal" style="font-weight:600;"></span></div>
+                <div>Calibration Error (Post): <span id="c-post-cal" style="font-weight:600;"></span></div>
+                <div>Confidence Metric Shift: <span id="c-conf-shift" style="font-weight:600;"></span></div>
+                <div>Cognitive Load Variance: <span id="c-load-shift" style="font-weight:600;"></span></div>
+                <div>Execution System Runtime: <span id="c-time" style="font-weight:600;"></span> seconds</div>
+            </div>
+        </div>
+        <div id="alert-8" class="alert"></div>
+        <div id="backup-download" style="display:none; margin-top:15px;"></div>
+    </div>
+</div>
+
+<script>
+    // ==== Configuration ====================================================
+    // Replace with your deployed Apps Script /exec URL (see Code.gs header
+    // for deployment steps).
+    const BACKEND_API_URL = "https://script.google.com/macros/s/AKfycbyaJ49zCfQZZvMVFK1v5SBZ52ASfHiyFUwrYziy00YXWPRsPR1cPJ2YhNflI68sUEhWWQ/exec";
+
+    // ==== Client state (display + in-progress form values only) ===========
+    // NOTE: this object intentionally never holds a solved "answers" object.
+    // All correctness checks happen server-side in Code.gs.
+    const state = {
+        studentName: '', studentRoll: '', sessionToken: '', datasetId: '',
+        isInstructor: false, startTime: 0,
+        numberOfRecalculations: 0,
+        displayData: null,
+        lastSubmitPayload: null // kept only so we can offer a local-backup download if the network call fails
+    };
+
+    // ==== Thin API wrapper ==================================================
+    // Uses a text/plain Content-Type on purpose: this keeps the POST request
+    // a CORS "simple request", which Apps Script web apps can respond to
+    // directly (no opaque no-cors response, so we can actually read success
+    // or failure). Apps Script still parses the body as JSON server-side.
+    async function apiCall(action, payload) {
+        const response = await fetch(BACKEND_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action, ...payload })
+        });
+        if (!response.ok) throw new Error(`Server returned HTTP ${response.status}`);
+        const data = await response.json();
+        if (!data.ok) {
+            const err = new Error(data.error || data.message || "Unknown server error");
+            err.locked = !!data.locked;
+            err.allErrors = data.allErrors;
+            throw err;
+        }
+        return data;
+    }
+
+    function applyState(s) {
+        if (!s) return;
+        document.getElementById('hud-hints').innerText = s.hints;
+        document.getElementById('hud-penalties').innerText = `${(s.penalties * 10) + (s.hints * 3) + Math.min(s.errors * 1, 10)} pts`;
+        document.getElementById('hud-score').innerText = s.score + "%";
+    }
+
+    // ==== Screen 0: Consent + Init ==========================================
+    async function initializeSimulation() {
+        const name = document.getElementById('student-name').value.trim();
+        const roll = document.getElementById('student-roll').value.trim();
+        const consentAssignment = document.getElementById('consent-assignment').checked;
+        const consentResearch = document.getElementById('consent-research').checked;
+        const btn = document.getElementById('init-btn');
+        const alertBox = document.getElementById('alert-0');
+
+        if (!consentAssignment) { alertMsg('alert-0', "You must check the required assignment consent box to proceed."); return; }
+        if (!name || !roll) { alertMsg('alert-0', "Name and Roll Number are required."); return; }
+
+        state.studentName = name; state.studentRoll = roll; state.startTime = Date.now();
+        btn.innerText = "Initializing..."; btn.disabled = true;
+        alertBox.style.display = "block"; alertBox.className = "alert alert-warning";
+        alertBox.innerText = "Contacting simulation server and generating your dataset...";
+
+        try {
+            const res = await apiCall('initSession', { name, roll, consentAssignment, consentResearch });
+            state.sessionToken = res.sessionToken;
+            state.datasetId = res.datasetId;
+            state.isInstructor = res.isInstructor;
+            state.displayData = res.displayData;
+
+            document.getElementById('student-tag').innerText = `${state.studentName} (${state.studentRoll})`;
+            document.getElementById('hud-ds').innerText = state.datasetId;
+            document.getElementById('hud').style.display = 'flex';
+            applyState(res.state);
+            alertBox.style.display = "none";
+            populateDOM();
+            nextScreen(1);
+        } catch (err) {
+            btn.innerText = "Initialize Attempt"; btn.disabled = !err.locked;
+            alertBox.className = "alert alert-error";
+            alertBox.innerText = err.locked
+                ? err.message
+                : "Could not reach the simulation server: " + err.message + ". Check your connection and try again.";
+        }
+    }
+
+    function populateDOM() {
+        const d = state.displayData;
+        for (let i = 0; i < 4; i++) {
+            document.getElementById(`d-vol${i}`).innerText = d.vol[i].toLocaleString();
+            document.getElementById(`d-dm${i}`).innerText = "₹" + d.dm[i].toFixed(2);
+            document.getElementById(`d-dl${i}`).innerText = d.dl[i].toFixed(2);
+            document.getElementById(`d-mhu${i}`).innerText = d.mhPerUnit[i].toFixed(2);
+            document.getElementById(`d-runs${i}`).innerText = d.runs[i];
+            document.getElementById(`d-su${i}`).innerText = d.suHours[i];
+            document.getElementById(`d-parts${i}`).innerText = d.parts[i];
+        }
+        document.getElementById('d-pool0').innerText = "₹" + d.cScheduling.toLocaleString();
+        document.getElementById('d-pool1').innerText = "₹" + d.cSetups.toLocaleString();
+        document.getElementById('d-pool2').innerText = "₹" + d.cParts.toLocaleString();
+        document.getElementById('d-pool3').innerText = "₹" + d.cMachine.toLocaleString();
+        document.getElementById('d-total-oh').innerText = "₹" + d.totalOH.toLocaleString();
+
+        document.getElementById('drawer-content').innerHTML = `
+            <table style="margin-top:0;">${document.getElementById('source-table-1').innerHTML}</table>
+            <div style="display:flex; justify-content:space-between; margin-top:10px; background:#e2e8f0; padding:10px; border-radius:4px;">
+                <span>Total Budgeted Overhead: <strong>₹${d.totalOH.toLocaleString()}</strong></span>
+                <span>Sched: ₹${d.cScheduling.toLocaleString()} | Setups: ₹${d.cSetups.toLocaleString()} | Parts: ₹${d.cParts.toLocaleString()} | Mach: ₹${d.cMachine.toLocaleString()}</span>
+            </div>`;
+
+        const p1body = document.getElementById('phase1-tbody');
+        p1body.innerHTML = ['Blue', 'Black', 'Red', 'Purple'].map((name, i) => `
+            <tr><td>${name} Pen</td><td>₹${d.dm[i].toFixed(2)}</td><td>₹${(d.dl[i] * d.dlRate).toFixed(2)}</td>
+                <td><input type="number" id="p1-oh${i}" step="0.01" onchange="state.numberOfRecalculations++"></td>
+                <td><input type="number" id="p1-uc${i}" step="0.01"></td>
+                <td><input type="number" id="p1-tp${i}" step="0.01"></td></tr>`).join('');
+
+        const p2body = document.getElementById('phase2b-tbody');
+        p2body.innerHTML = ['Blue', 'Black', 'Red', 'Purple'].map((name, i) => `
+            <tr><td>${name} Pen</td>
+                <td><input type="number" id="a-s${i}" step="0.01" onchange="state.numberOfRecalculations++"></td>
+                <td><input type="number" id="a-su${i}" step="0.01"></td>
+                <td><input type="number" id="a-p${i}" step="0.01"></td>
+                <td><input type="number" id="a-m${i}" step="0.01"></td>
+                <td><input type="number" id="a-uc${i}" step="0.01"></td></tr>`).join('');
+
+        const cl = d.customerLensContext;
+        document.getElementById('p5b-winner-name').innerText = `the ${cl.productName} Pen`;
+        document.getElementById('customer-lens-tbody').innerHTML = `
+            <tr><td><strong>Alpha</strong></td><td>Large, infrequent, predictable orders</td>
+                <td>${cl.alpha.volumeUnits.toLocaleString()}</td><td>${cl.alpha.runs}</td>
+                <td>${cl.alpha.setupHours}</td><td>${cl.alpha.partsLines}</td></tr>
+            <tr><td><strong>Beta</strong></td><td>Small, frequent, high-touch rush orders</td>
+                <td>${cl.beta.volumeUnits.toLocaleString()}</td><td>${cl.beta.runs}</td>
+                <td>${cl.beta.setupHours}</td><td>${cl.beta.partsLines}</td></tr>`;
+    }
+
+    function nextScreen(num, showDrawer = false) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(`screen-${num}`).classList.add('active');
+        document.getElementById('global-drawer').style.display = showDrawer ? 'block' : 'none';
+        window.scrollTo(0, 0);
+    }
+
+    // ==== Phase 1 ============================================================
+    async function validatePhase1() {
+        const values = {
+            rate: numOrNull('p1-rate'),
+            oh: [0, 1, 2, 3].map(i => numOrNull(`p1-oh${i}`)),
+            uc: [0, 1, 2, 3].map(i => numOrNull(`p1-uc${i}`)),
+            tp: [0, 1, 2, 3].map(i => numOrNull(`p1-tp${i}`))
+        };
+        try {
+            const res = await apiCall('validatePhase', { sessionToken: state.sessionToken, phase: 'phase1', values });
+            applyState(res.state);
+            successMsg('alert-2', `<button class="btn btn-success" onclick="nextScreen('2_5', true)">Open Strategic Survey Module</button>`);
+        } catch (err) {
+            alertMsg('alert-2', err.message, err.allErrors);
+        }
+    }
+
+    async function submitPreAssessment() {
+        const required = ['pre-q1', 'pre-r1', 'pre-r2', 'pre-r3', 'pre-r4', 'pre-q3', 'pre-q4', 'cl-pre'];
+        if (required.some(id => !document.getElementById(id).value)) {
+            alert("All assessment questionnaire fields are required."); return;
+        }
+        nextScreen(3, true);
+    }
+
+    // ==== Phase 2a ===========================================================
+    async function validatePhase2a() {
+        const rows = [0, 1, 2, 3, 4, 5].map(i => ({
+            h: document.getElementById(`p2a-h${i}`).value, d: document.getElementById(`p2a-d${i}`).value
+        }));
+        try {
+            const res = await apiCall('validatePhase', { sessionToken: state.sessionToken, phase: 'phase2a', values: { rows } });
+            applyState(res.state);
+            successMsg('alert-3', `<button class="btn btn-success" onclick="nextScreen(4, true)">Proceed to Phase 2b</button>`);
+        } catch (err) {
+            alertMsg('alert-3', err.message, err.allErrors);
+        }
+    }
+
+    // ==== Phase 2b ===========================================================
+    async function validatePhase2b() {
+        const values = {
+            rates: [0, 1, 2, 3].map(i => numOrNull(`p2b-r${i}`)),
+            aSch: [0, 1, 2, 3].map(i => numOrNull(`a-s${i}`)),
+            aSu: [0, 1, 2, 3].map(i => numOrNull(`a-su${i}`)),
+            aPts: [0, 1, 2, 3].map(i => numOrNull(`a-p${i}`)),
+            aMach: [0, 1, 2, 3].map(i => numOrNull(`a-m${i}`)),
+            uc: [0, 1, 2, 3].map(i => numOrNull(`a-uc${i}`))
+        };
+        try {
+            const res = await apiCall('validatePhase', { sessionToken: state.sessionToken, phase: 'phase2b', values });
+            applyState(res.state);
+            renderDashboard(res.dashboard);
+            successMsg('alert-4', `<button class="btn btn-success" onclick="nextScreen(5, false)">Open Cost Distortion Dashboard</button>`);
+        } catch (err) {
+            alertMsg('alert-4', err.message, err.allErrors);
+        }
+    }
+
+    function renderDashboard(dash) {
+        state.dashboardData = dash; // kept for the ungraded what-if explorer
+        const names = ['Blue', 'Black', 'Red', 'Purple'];
+        const tbody = document.getElementById('dashboard-tbody');
+        tbody.innerHTML = names.map((name, i) => {
+            const distortion = dash.abcUnitCost[i] - dash.traditionalUnitCost[i];
+            let statusHtml;
+            if (distortion < -0.5) statusHtml = `<span style="color:var(--success);font-weight:bold;">Overcosted (Cash Engine)</span>`;
+            else if (distortion > 5) statusHtml = `<span style="color:var(--error);font-weight:bold;">Severe Loss (Hidden Drain)</span>`;
+            else if (distortion > 0.5) statusHtml = `<span style="color:var(--warning);font-weight:bold;">Undercosted (Margin Leak)</span>`;
+            else statusHtml = `<span>Approximately Neutral</span>`;
+            return `<tr><td><strong>${name} Pen</strong></td><td>${dash.vol[i].toLocaleString()}</td>
+                <td>₹${dash.traditionalUnitCost[i].toFixed(2)}</td><td>₹${dash.abcUnitCost[i].toFixed(2)}</td>
+                <td>₹${dash.traditionalPrice[i].toFixed(2)}</td><td>₹${dash.abcPrice[i].toFixed(2)}</td>
+                <td>${statusHtml}</td></tr>`;
+        }).join('');
+        renderWhatIf();
+    }
+
+    // ==== Ungraded "what-if" sensitivity explorer ===========================
+    // Uses ONLY the pool rates the student already entered themselves in
+    // Phase 2b (already validated correct) plus raw driver data they already
+    // have -- no new information is revealed here.
+    function renderWhatIf() {
+        const idx = Number(document.getElementById('whatif-product').value);
+        const pct = Number(document.getElementById('whatif-slider').value);
+        document.getElementById('whatif-slider-val').innerText = `${pct}% of actual`;
+
+        const d = state.displayData;
+        const rates = [0, 1, 2, 3].map(i => Number(document.getElementById(`p2b-r${i}`).value) || 0);
+        const [rSched, rSetup, rParts, rMach] = rates;
+
+        const actualVol = d.vol[idx];
+        const newVol = actualVol * (pct / 100);
+        // Runs, setup hours, and parts count are held FIXED -- they don't
+        // automatically scale with volume. Only machine hours (a genuinely
+        // unit-level driver) scale proportionally with volume.
+        const runs = d.runs[idx], suHours = d.suHours[idx], parts = d.parts[idx];
+        const mhPerUnit = d.mhPerUnit[idx];
+        const newMh = mhPerUnit * newVol;
+
+        const allocatedOH = (runs * rSched) + (suHours * rSetup) + (parts * rParts) + (newMh * rMach);
+        const newUnitCost = d.dm[idx] + (d.dl[idx] * d.dlRate) + (allocatedOH / newVol);
+
+        const actualAllocatedOH = (runs * rSched) + (suHours * rSetup) + (parts * rParts) + (mhPerUnit * actualVol * rMach);
+        const actualUnitCost = d.dm[idx] + (d.dl[idx] * d.dlRate) + (actualAllocatedOH / actualVol);
+
+        const names = ['Blue', 'Black', 'Red', 'Purple'];
+        const direction = newUnitCost > actualUnitCost ? '↑ higher' : (newUnitCost < actualUnitCost ? '↓ lower' : 'unchanged');
+        document.getElementById('whatif-output').innerHTML = `
+            <div><strong>${names[idx]} Pen</strong> at ${pct}% of actual volume (${Math.round(newVol).toLocaleString()} units):</div>
+            <div style="margin-top:6px;">True ABC unit cost: <strong>₹${newUnitCost.toFixed(2)}</strong>
+                <span style="color:var(--text-muted);">(actual: ₹${actualUnitCost.toFixed(2)}, ${direction})</span></div>`;
+    }
+
+    async function submitPostAssessment() {
+        const required = ['post-q1', 'post-r1', 'post-r2', 'post-r3', 'post-r4', 'post-q3', 'post-q4', 'cl-post'];
+        if (required.some(id => !document.getElementById(id).value)) {
+            alert("Please complete all tactical questionnaire fields before continuing."); return;
+        }
+        nextScreen('5a', false);
+    }
+
+    // ==== Phase 5: capacity & committed cost =================================
+    function submitPhase5() {
+        const required = ['p5-class-scheduling', 'p5-class-setups', 'p5-class-parts', 'p5-class-machine',
+            'p5-reduction', 'p5-rank1', 'p5-rank2', 'p5-rank3', 'p5-rank4'];
+        if (required.some(id => document.getElementById(id).value === '')) {
+            alertMsg('alert-5a', "Please complete every classification, the reduction estimate, and the full ranking before continuing.");
+            return;
+        }
+        const ranks = [val('p5-rank1'), val('p5-rank2'), val('p5-rank3'), val('p5-rank4')];
+        if (new Set(ranks).size !== 4) {
+            alertMsg('alert-5a', "Each product must appear exactly once in the priority ranking.");
+            return;
+        }
+        state.phase5Answers = {
+            classification: {
+                scheduling: val('p5-class-scheduling'), setups: val('p5-class-setups'),
+                parts: val('p5-class-parts'), machine: val('p5-class-machine')
+            },
+            reductionEstimate: Number(val('p5-reduction')),
+            throughputRanking: ranks
+        };
+        nextScreen('5b', false);
+    }
+
+    // ==== Phase 5b: customer lens ============================================
+    function submitCustomerLens() {
+        if (!val('p5b-customer') || val('p5b-gap') === '') {
+            alertMsg('alert-5b', "Please select a customer and provide a margin-gap estimate before continuing.");
+            return;
+        }
+        state.customerLensAnswers = {
+            lessProfitableCustomer: val('p5b-customer'),
+            marginGapEstimate: Number(val('p5b-gap'))
+        };
+        initializeDilemma();
+    }
+
+    // ==== Dilemma ============================================================
+    function initializeDilemma() {
+        document.getElementById('dilemma-content').innerHTML = `<h3>The Specialty Profitability Illusion</h3>
+            <p><strong>Context:</strong> Sales Manager Deepak Sharma wants a new specialty color line, noting that
+            custom pens are highly profitable under the firm's traditional 40% markup rules. Jayesh Dixit claims
+            the factory floor is drowning in changeovers. Your Phase 5 analysis just showed how much of that cost
+            is genuinely avoidable versus committed capacity — use it.</p>`;
+        document.getElementById('optA-text').innerText = "Launch/keep expanding the line as-is: standard costing shows healthy gross margin.";
+        document.getElementById('optB-text').innerText = "Exit the line entirely: it doesn't cover even its genuinely avoidable cost, so continuing destroys value.";
+        document.getElementById('optC-text').innerText = "Right-size, don't exit: raise price and/or set minimum order quantities so the line covers its true complexity cost — full exit would strand committed capacity it's still contributing toward.";
+        nextScreen(6, false);
+    }
+
+    async function validateDilemma() {
+        const choice = document.getElementById('dilemma-choice').value;
+        if (!choice) return;
+        try {
+            const res = await apiCall('checkDilemma', { sessionToken: state.sessionToken, choice });
+            applyState(res.state);
+            const box = document.getElementById('alert-6');
+            box.className = `alert alert-${res.passed ? 'success' : 'error'}`;
+            box.innerText = res.passed ? "Strategic Directive Validated: Core alignment matches operational architecture." : "Strategic Selection Flawed: Traditional accounting visibility boundaries compromised.";
+            box.style.display = "block";
+            setTimeout(() => nextScreen(7, false), 2000);
+        } catch (err) {
+            alertMsg('alert-6', err.message);
+        }
+    }
+
+    // ==== Hints / Bypass =====================================================
+    async function requestHint(phase) {
+        try {
+            const res = await apiCall('hint', { sessionToken: state.sessionToken, phase });
+            applyState(res.state);
+            const boxId = phase === 1 ? 'hint-box-1' : 'hint-box-2';
+            const box = document.getElementById(boxId);
+            box.innerHTML = `<strong>Hint:</strong> ${res.hintText}`;
+            box.style.display = 'block';
+        } catch (err) {
+            alert("Could not fetch hint: " + err.message);
+        }
+    }
+
+    async function autoBypass(phase) {
+        if (!confirm("Using the emergency override applies a -20 point penalty. Proceed?")) return;
+        try {
+            const res = await apiCall('bypass', { sessionToken: state.sessionToken, phase });
+            applyState(res.state);
+            const v = res.values;
+            if (phase === 1) {
+                document.getElementById('p1-rate').value = v.rate.toFixed(2);
+                for (let i = 0; i < 4; i++) {
+                    document.getElementById(`p1-oh${i}`).value = v.oh[i].toFixed(2);
+                    document.getElementById(`p1-uc${i}`).value = v.uc[i].toFixed(2);
+                    document.getElementById(`p1-tp${i}`).value = v.tp[i].toFixed(2);
+                }
+                await validatePhase1();
+            } else if (phase === 2) {
+                v.rows.forEach((row, i) => {
+                    document.getElementById(`p2a-h${i}`).value = row.h;
+                    document.getElementById(`p2a-d${i}`).value = row.d;
+                });
+                await validatePhase2a();
+            } else if (phase === 3) {
+                document.getElementById('p2b-r0').value = v.rates[0].toFixed(2);
+                document.getElementById('p2b-r1').value = v.rates[1].toFixed(2);
+                document.getElementById('p2b-r2').value = v.rates[2].toFixed(2);
+                document.getElementById('p2b-r3').value = v.rates[3].toFixed(2);
+                for (let i = 0; i < 4; i++) {
+                    document.getElementById(`a-s${i}`).value = v.aSch[i].toFixed(2);
+                    document.getElementById(`a-su${i}`).value = v.aSu[i].toFixed(2);
+                    document.getElementById(`a-p${i}`).value = v.aPts[i].toFixed(2);
+                    document.getElementById(`a-m${i}`).value = v.aMach[i].toFixed(2);
+                    document.getElementById(`a-uc${i}`).value = v.uc[i].toFixed(2);
+                }
+                await validatePhase2b();
+            }
+        } catch (err) {
+            alert("Override failed: " + err.message);
+        }
+    }
+
+    // ==== Final submission ===================================================
+    async function processFinalMetricsAndSubmit() {
+        const payload = {
+            sessionToken: state.sessionToken,
+            pre: {
+                q1: val('pre-q1'), ranking: [val('pre-r1'), val('pre-r2'), val('pre-r3'), val('pre-r4')],
+                q3: val('pre-q3'), q4: val('pre-q4')
+            },
+            post: {
+                q1: val('post-q1'), ranking: [val('post-r1'), val('post-r2'), val('post-r3'), val('post-r4')],
+                q3: val('post-q3'), q4: val('post-q4')
+            },
+            dilemmaChoice: val('dilemma-choice'),
+            phase5: state.phase5Answers || {},
+            customerLens: state.customerLensAnswers || {},
+            confidencePre: Number(val('conf-pre')), confidencePost: Number(val('conf-post')),
+            cognitiveLoadPre: Number(val('cl-pre')), cognitiveLoadPost: Number(val('cl-post')),
+            reflections: {
+                surprised: val('ref-surprised'), misconception: val('ref-misconception'),
+                driver: val('ref-driver'), learned: val('ref-learned')
+            },
+            rebuttal: val('ref-rebuttal'),
+            numberOfRecalculations: state.numberOfRecalculations
+        };
+        state.lastSubmitPayload = payload;
+        nextScreen(8, false);
+
+        const statusBox = document.getElementById('transmission-status');
+        const alertBox = document.getElementById('alert-8');
+        alertBox.style.display = "block"; alertBox.className = "alert alert-warning";
+        alertBox.innerText = "Submitting your results to the gradebook...";
+
+        try {
+            const res = await apiCall('submitFinal', payload);
+            applyState({ hints: res.breakdown.hints, penalties: res.breakdown.penalties, errors: res.breakdown.errors, score: res.finalScore });
+            renderSummary(res);
+            statusBox.innerText = "Synchronized.";
+            alertBox.className = "alert alert-success";
+            alertBox.innerText = "Submission confirmed: your grade and telemetry were recorded successfully.";
+        } catch (err) {
+            statusBox.innerText = "Sync failure.";
+            alertBox.className = "alert alert-error";
+            alertBox.innerText = "Could not reach the grading server (" + err.message + "). Your answers have NOT been lost — download the backup below and send it to your instructor, then try resubmitting when your connection is back.";
+            offerLocalBackup(payload);
+        }
+    }
+
+    function renderSummary(res) {
+        document.getElementById('score-base').innerText = res.breakdown.base;
+        document.getElementById('score-dil').innerText = res.breakdown.dilemma;
+        document.getElementById('score-phase5').innerText = res.breakdown.phase5;
+        document.getElementById('score-customer').innerText = res.breakdown.customerLens;
+        document.getElementById('meta-hints').innerText = res.breakdown.hints;
+        document.getElementById('meta-recalcs').innerText = state.numberOfRecalculations;
+        document.getElementById('meta-errors').innerText = res.breakdown.errors;
+        document.getElementById('final-score-val').innerText = res.finalScore + "%";
+
+        const m = res.metrics;
+        document.getElementById('c-pre-acc').innerText = m.DecisionAccuracy_Pre + "%";
+        document.getElementById('c-post-acc').innerText = m.DecisionAccuracy_Post + "%";
+        document.getElementById('c-gain').innerText = (m.LearningGain >= 0 ? "+" : "") + m.LearningGain + "%";
+        document.getElementById('c-pre-cal').innerText = m.CalibrationError_Pre + "%";
+        document.getElementById('c-post-cal').innerText = m.CalibrationError_Post + "%";
+        document.getElementById('c-conf-shift').innerText = (m.ConfidenceChange >= 0 ? "+" : "") + m.ConfidenceChange + "%";
+        document.getElementById('c-load-shift').innerText = (m.CognitiveLoadChange >= 0 ? "+" : "") + m.CognitiveLoadChange;
+        document.getElementById('c-time').innerText = m.CompletionTime;
+    }
+
+    function offerLocalBackup(payload) {
+        const blob = new Blob([JSON.stringify({
+            studentName: state.studentName, studentRoll: state.studentRoll,
+            sessionToken: state.sessionToken, datasetId: state.datasetId,
+            submittedAt: new Date().toISOString(), payload
+        }, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const container = document.getElementById('backup-download');
+        container.style.display = 'block';
+        container.innerHTML = `<a class="btn btn-warning" download="apc-backup-${state.datasetId}.json" href="${url}">Download Backup File</a>
+            <button class="btn" style="background:var(--primary);color:#fff;" onclick="processFinalMetricsAndSubmit()">Retry Submission</button>`;
+    }
+
+    // ==== Small helpers ======================================================
+    function val(id) { return document.getElementById(id).value; }
+    function numOrNull(id) { const v = document.getElementById(id).value; return v === '' ? null : parseFloat(v); }
+    function alertMsg(id, text, allErrors) {
+        const el = document.getElementById(id);
+        el.className = "alert alert-error";
+        if (allErrors && allErrors.length > 1) {
+            el.innerHTML = text + `<ul class="field-error-list">${allErrors.map(e => `<li>${e}</li>`).join('')}</ul>`;
+        } else {
+            el.innerText = text;
+        }
+        el.style.display = "block";
+    }
+    function successMsg(id, html) {
+        const el = document.getElementById(id);
+        el.className = "alert alert-success"; el.innerHTML = "Values Balanced &amp; Confirmed. " + html; el.style.display = "block";
+    }
+</script>
+
+</body>
+</html>
